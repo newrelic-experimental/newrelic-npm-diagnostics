@@ -1,27 +1,25 @@
 [![New Relic Experimental header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Experimental.png)](https://opensource.newrelic.com/oss-category/#new-relic-experimental)
 
-# [Name of Project] [build badges go here when available]
+# npmDiag
 
->[Brief description - what is the project and value does it provide? How often should users expect to get releases? How is versioning set up? Where does this project want to go?]
+> A script for retrieving Network Performance Monitoring configuration files and logs from your Docker environment. Outputs a file called `npmDiag-output.zip` which can be supplied to New Relic for support.
 
 ## Installation
 
-> [Include a step-by-step procedure on how to get your code installed. Be sure to include any third-party dependencies that need to be installed separately]
-
-## Getting Started
->[Simple steps to start working with the software similar to a "Hello World"]
+> Script requires the `zip` package ([info here](https://www.linux.org/docs/man1/zip.html)) in order to run correctly. No installation is necessary; Just follow the instructions in [Usage](#usage).
 
 ## Usage
->[**Optional** - Include more thorough instructions on how to use the software. This section might not be needed if the Getting Started section is enough. Remove this section if it's not needed.]
+> 1. Place `npmDiag.sh` into the same directory as your `snmp-base.yaml` configuration file(s).
+> 2. Open shell session in the same directory as the script
+> 3. Run npmDiag as root, or with `sudo ./npmDiag` to begin. This script must be run with `sudo`, or as the root user. It will exit automatically if it's not.
 
-
-## Building
-
->[**Optional** - Include this section if users will need to follow specific instructions to build the software from source. Be sure to include any third party build dependencies that need to be installed separately. Remove this section if it's not needed.]
-
-## Testing
-
->[**Optional** - Include instructions on how to run tests if we include tests with the codebase. Remove this section if it's not needed.]
+## Planned changes:
+> - Add default selection for which containers and config files to include
+>   - Default container selection to be any containers with `ktranslate` in the name
+>   - Default configuration file selection to be any config files actively loaded into selected container's memory
+> - Add support for `--walk` argument flag, used to run full `snmpwalk` at the end of diagnostics file collection
+>   - Pull needed `snmpwalk` arguments from configuration file
+>  - Prompt customer for which device to walk, using config file for list of options
 
 ## Support
 
