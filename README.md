@@ -10,8 +10,8 @@
 
 ## Usage
 > 1. Place `npmDiag.sh` into the same directory as your `snmp-base.yaml` configuration file(s).
-> 2. Open shell session in the same directory as the script
-> 3. Run npmDiag as root, or with `sudo ./npmDiag` to begin. This script must be run with `sudo`, or as the root user. It will exit automatically if it's not.
+> 2. Open a shell session in the same directory as the script
+> 3. Run `npmDiag` as root, or with `sudo ./npmDiag` to begin. If this script is not run as root, or with `sudo`, it will automatically exit with an error message.
 
 ## Planned changes:
 > - Add default selection for which containers and config files to include
@@ -19,7 +19,7 @@
 >   - Default configuration file selection to be any config files actively loaded into selected container's memory
 > - Add support for `--walk` argument flag, used to run full `snmpwalk` at the end of diagnostics file collection
 >   - Pull needed `snmpwalk` arguments from configuration file
->  - Prompt customer for which device to walk, using config file for list of options
+>  - Prompt user for which device to walk, using config file for list of options
 
 ## Support
 
@@ -28,7 +28,7 @@ New Relic hosts and moderates an online forum where customers can interact with 
 >Add the url for the support thread here
 
 ## Contributing
-We encourage your contributions to improve [project name]! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
+We encourage your contributions to improve `npmDiag`! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
 If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company,  please drop us an email at opensource@newrelic.com.
 
 **A note about vulnerabilities**
@@ -38,5 +38,4 @@ As noted in our [security policy](../../security/policy), New Relic is committed
 If you believe you have found a security vulnerability in this project or any of New Relic's products or websites, we welcome and greatly appreciate you reporting it to New Relic through [HackerOne](https://hackerone.com/newrelic).
 
 ## License
-[Project Name] is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
->[If applicable: The [project name] also uses source code from third-party libraries. You can find full details on which libraries are used and the terms under which they are licensed in the third-party notices document.]
+`npmDiag` is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
