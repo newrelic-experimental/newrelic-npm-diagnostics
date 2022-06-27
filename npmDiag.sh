@@ -29,7 +29,8 @@ containerLogCollect() {
     while [[ "$exitStatement" == "false" ]]; do
         echo ""
         echo "Enter space-delimited list of containers you want diagnostic data from (0 1 2...)"
-        read -ep "You can also enter a hyphen to chose a container not shown above > " containerOptions
+        echo "You can also enter a hyphen to chose a container not shown above"
+        read -ep "or leave the selection blank to choose all containers with \"ktranslate\" in the name > " containerOptions
     
         if [[ "$containerOptions" = "-" ]]; then
             echo ""
@@ -66,13 +67,23 @@ containerLogCollect() {
                 echo ""
                 echo "Container selection must include only integers shown in the listed options."
             fi
+        elif [[ -z "$containerOptions" ]]; then
+            selectedContainers=($(docker ps -a --format '{{.Names}}' | grep "ktranslate"))
+            declare -a containerIDs=()
+
+            # Retrieve full-length container IDs for selected containers
+            for i in "${!selectedContainers[@]}"; do
+                containerIDs+=( $(docker ps -aqf "name=^${selectedContainers[i]}$" --no-trunc) )
+            done
+            exitStatement=true
         else
             echo ""
-            echo "Selection must be a space-delimited list of integers, or a single hyphen to denote wanting a custom target."
+            echo "Selection must be a space-delimited list of integers, a single hyphen to denote wanting a custom target, or an empty selection to indicate the default choice (all containers with \"ktranslate\" in the name)."
         fi
     done
 
     # Create a temporary directory for file storage prior to zipping everything up
+    rm -rd /tmp/npmDiag
     mkdir /tmp/npmDiag
 
     # Start log-collection loop
@@ -85,8 +96,8 @@ containerLogCollect() {
         rm /var/lib/docker/containers/"${containerIDs[i]}"/"${containerIDs[i]}"-json.log
         docker start ${containerIDs[i]} > /dev/null 2>&1
 
-        waitTime=60
-        while [ $waitTime -gt 0 ]; do
+        waitTime=59
+        while [ $waitTime -gt -1 ]; do
            echo -ne "Seconds remaining: $waitTime\033[0K\r"
            sleep 1
            : $((waitTime--))
@@ -94,7 +105,8 @@ containerLogCollect() {
 
         cp /var/lib/docker/containers/"${containerIDs[i]}"/"${containerIDs[i]}"-json.log /tmp/npmDiag/"$(docker ps -a --format '{{.Names}}' -f "id=${containerIDs[i]}")"-json.log
     done
-    echo ""
+    echo "Seconds remaining: 0"
+    echo "=-=-=-=-=-=-=-=-=-=-="
     echo "Done regenerating log files!"
     echo "=-=-=-=-=-=-=-=-=-=-="
 }
@@ -161,6 +173,7 @@ yamlFileCollect() {
     done
     echo ""
     echo "Done collecting files to include in output."
+    echo 
     echo "Placing npmDiag-output.zip in the current directory."
 }
 
