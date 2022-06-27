@@ -85,13 +85,20 @@ containerLogCollect() {
         rm /var/lib/docker/containers/"${containerIDs[i]}"/"${containerIDs[i]}"-json.log
         docker start ${containerIDs[i]} > /dev/null 2>&1
 
-        echo "Waiting for $(docker ps -a --format '{{.Names}}' -f "id=${containerIDs[i]}") to finish starting up..."
+#        echo "Waiting for $(docker ps -a --format '{{.Names}}' -f "id=${containerIDs[i]}") to finish starting up..."
+#        waitTime=60
+#        completeTime="$(($(date +%s) + $waitTime))"
+#        while [ "$completeTime" -ge `date +%s` ]; do
+#            currentTime="$(( $completeTime - `date +%s` ))"
+#            printf '%s\r' "$(date -u -d "@$currentTime" +%M:%S)"
+#        done
         waitTime=60
-        completeTime="$(($(date +%s) + $waitTime))"
-        while [ "$completeTime" -ge `date +%s` ]; do
-            currentTime="$(( $completeTime - `date +%s` ))"
-            printf '%s\r' "$(date -u -d "@$currentTime" +%M:%S)"
+        while [ $waitTime -gt 0 ]; do
+           echo -ne "Seconds remaining: $waitTime\033[0K\r"
+           sleep 1
+           : $((waitTime--))
         done
+
         cp /var/lib/docker/containers/"${containerIDs[i]}"/"${containerIDs[i]}"-json.log /tmp/npmDiag/"$(docker ps -a --format '{{.Names}}' -f "id=${containerIDs[i]}")"-json.log
     done
     echo ""
