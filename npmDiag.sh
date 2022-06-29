@@ -12,6 +12,7 @@ if ! [[ $(command -v zip) ]]; then
     exit 0
 fi
 
+declare -a containerIDs=()
 containerLogCollect() {
     # Find all containers on system that contain "ktranslate" in the name, regardless of container state
     foundContainers=( $(docker ps -a --format '{{.Names}}' | grep "ktranslate") )
@@ -29,8 +30,8 @@ containerLogCollect() {
     while [[ "$exitStatement" == "false" ]]; do
         echo ""
         echo "Enter space-delimited list of containers you want diagnostic data from (0 1 2...)"
-        echo "You can also enter a hyphen to chose a container not shown above"
-        read -ep "or leave the selection blank to choose all containers with \"ktranslate\" in the name > " containerOptions
+        echo "You can also enter a hyphen to chose a container not shown above, or leave"
+        read -ep "the selection blank to choose all containers that ARE shown above > " containerOptions
     
         if [[ "$containerOptions" = "-" ]]; then
             echo ""
@@ -39,7 +40,6 @@ containerLogCollect() {
             echo ""
             read -ep "Enter a space-delimited list of container names to collect logs from > " customContainerTarget
             read -a selectedContainers <<< $customContainerTarget
-            declare -a containerIDs=()
 
             # Retrieve full-length container IDs for selected containers
             for i in "${!selectedContainers[@]}"; do
@@ -57,7 +57,6 @@ containerLogCollect() {
                 fi
             done
             if [[ "$passingValue" == true ]]; then
-                declare -a containerIDs=()
                 # Retrieve full-length container IDs for selected containers
                 for i in "${!selectedContainers[@]}"; do
                     containerIDs+=( $(docker ps -aqf "name=^${foundContainers[${selectedContainers[i]}]}$" --no-trunc) )
@@ -69,12 +68,12 @@ containerLogCollect() {
             fi
         elif [[ -z "$containerOptions" ]]; then
             selectedContainers=($(docker ps -a --format '{{.Names}}' | grep "ktranslate"))
-            declare -a containerIDs=()
 
             # Retrieve full-length container IDs for selected containers
             for i in "${!selectedContainers[@]}"; do
                 containerIDs+=( $(docker ps -aqf "name=^${selectedContainers[i]}$" --no-trunc) )
             done
+
             exitStatement=true
         else
             echo ""
@@ -83,7 +82,7 @@ containerLogCollect() {
     done
 
     # Create a temporary directory for file storage prior to zipping everything up
-    rm -rd /tmp/npmDiag
+    rm -rd /tmp/npmDiag > /dev/null 2>&1
     mkdir /tmp/npmDiag
 
     # Start log-collection loop
@@ -93,7 +92,7 @@ containerLogCollect() {
         echo "Restarting $(docker ps -a --format '{{.Names}}' -f "id=${containerIDs[i]}") to generate fresh logs..."
 
         docker stop ${containerIDs[i]} > /dev/null 2>&1
-        rm /var/lib/docker/containers/"${containerIDs[i]}"/"${containerIDs[i]}"-json.log
+        rm /var/lib/docker/containers/"${containerIDs[i]}"/"${containerIDs[i]}"-json.log > /dev/null 2>&1
         docker start ${containerIDs[i]} > /dev/null 2>&1
 
         waitTime=59
@@ -128,7 +127,8 @@ yamlFileCollect() {
     while [[ "$exitStatement" == "false" ]]; do
         echo ""
         echo "Enter space-delimited list of YAML files you want to collect (0 1 2...)"
-        read -ep "You can also enter a hyphen to choose files not shown above > " yamlOptions
+        echo "You can also enter a hyphen to choose files not shown above"
+        read -ep "or leave the selection blank to choose config files that are currently in use > " yamlOptions
 
         if [[ "$yamlOptions" = "-" ]]; then
             echo ""
@@ -138,7 +138,6 @@ yamlFileCollect() {
             read -ep "> " yamlOptions
             read -a targetFiles <<< $yamlOptions
             for i in "${!targetFiles[@]}"; do
-                
                 if [[ -f "${targetFiles[i]}" ]]; then
                     cp "${targetFiles[i]}" /tmp/npmDiag/"$(basename "${targetFiles[i]}")"
                 else
@@ -165,7 +164,22 @@ yamlFileCollect() {
                 echo ""
                 echo "YAML selection must include only integers shown in the listed options."
             fi
+        elif [[ -z "$yamlOptions" ]]; then
 
+            declare -a targetFiles=()
+            for i in "${!containerIDs[@]}"; do
+            targetFiles+=( $(docker container inspect "${containerIDs[i]}" --format '{{.Args}}' | grep -oe '[^\/]*\.yaml\|[^\/]*\.yml') )
+            done
+
+            declare -a uniqTargetFiles=()
+            uniqTargetFiles=( $(echo "${targetFiles[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ') )
+
+            for i in "${!uniqTargetFiles[@]}"; do
+                if [[ -f "${uniqTargetFiles[i]}" ]]; then
+                    cp "${uniqTargetFiles[i]}" /tmp/npmDiag/"$(basename "${uniqTargetFiles[i]}")"
+                fi
+            done
+            exitStatement=true
         else
             echo ""
             echo "Selection must be a space-delimited list of integers, or a single hyphen to denote wanting a custom target."
@@ -175,6 +189,7 @@ yamlFileCollect() {
     echo "Done collecting files to include in output."
     echo 
     echo "Placing npmDiag-output.zip in the current directory."
+    echo ""
 }
 
 diagZip() {
@@ -182,7 +197,7 @@ diagZip() {
 }
 
 postCleanup() {
-    rm -rd /tmp/npmDiag
+    rm -rd /tmp/npmDiag > /dev/null 2>&1
 }
 
 containerLogCollect
