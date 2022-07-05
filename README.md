@@ -6,7 +6,7 @@
 
 ## Installation
 
-> Script requires the `zip` package ([info here](https://www.linux.org/docs/man1/zip.html)) in order to run correctly. No installation is necessary; Just follow the instructions in [Usage](#usage).
+> Script requires the `zip` package ([info here](https://www.linux.org/docs/man1/zip.html)) in order to run correctly. No additional installation steps are necessary; Just follow the instructions in [Usage](#usage) to run the script.
 
 ## Usage
 > 1. Place `npmDiag.sh` into the same directory as your `snmp-base.yaml` configuration file(s).
