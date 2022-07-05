@@ -14,9 +14,6 @@
 > 3. Run `npmDiag` as root, or with `sudo ./npmDiag` to begin. If this script is not run as root, or with `sudo`, it will automatically exit with an error message.
 
 ## Planned changes:
-> - Add default selection for which containers and config files to include
->   - Default container selection to be any containers with `ktranslate` in the name
->   - Default configuration file selection to be any config files actively loaded into selected container's memory
 > - Add support for `--walk` argument flag, used to run full `snmpwalk` at the end of diagnostics file collection
 >   - Pull needed `snmpwalk` arguments from configuration file
 >  - Prompt user for which device to walk, using config file for list of options
