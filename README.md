@@ -2,27 +2,30 @@
 
 # npmDiag
 
-> A script for retrieving Network Performance Monitoring configuration files and logs from your Docker environment. Outputs a file called `npmDiag-output.zip` which can be supplied to New Relic for support.
+ A script for retrieving configuration files and logs from Network Performance Monitoring containers, or for running `snmpwalk` against a configured device. Outputs a file called `npmDiag-output.zip` with `--collect` mode, or `<deviceName>-snmpwalk.out` with `--walk` mode.
 
 ## Installation
+ Script requires different packages depending on the use case. Required packages are:
+  - `--collect`: [jq](https://packages.ubuntu.com/focal/jq), [zip](https://packages.ubuntu.com/focal/zip)
+  - `--walk`: [yq](https://snapcraft.io/yq), [snmp](https://packages.ubuntu.com/focal/snmp), [jq](https://packages.ubuntu.com/focal/jq)
 
-> Script requires the `zip` package ([info here](https://www.linux.org/docs/man1/zip.html)) in order to run correctly. No additional installation steps are necessary; Just follow the instructions in [Usage](#usage) to run the script.
+No additional installation steps are necessary; Just follow the instructions in [Usage](#usage) to run the script.
 
 ## Usage
-> 1. Place `npmDiag.sh` into the same directory as your `snmp-base.yaml` configuration file(s).
-> 2. Open a shell session in the same directory as the script
-> 3. Run `npmDiag` as root, or with `sudo ./npmDiag` to begin. If this script is not run as root, or with `sudo`, it will automatically exit with an error message.
+ 1. Download the script with `wget https://raw.githubusercontent.com/newrelic-experimental/newrelic-npm-diagnostics/main/npmDiag.sh`
+ 2. Use `chmod +x ./npmDiag.sh` to make it executable
+ 3. Run the script with either `sudo ./npmDiag.sh --collect` or `./npmDiag.sh --walk` depending on what you want to do
+     - `--collect`: Collects diagnostic info from containers. Outputs a zip file called `npmDiag-output.zip`
+     - `--walk`: Run `snmpwalk` against a device from the config. Outputs `<deviceName>-snmpwalk.out`
+ 
+_Note: `--collect` mode must be run with `sudo` in order to restart Docker containers. Running this mode without `sudo` will throw and error, and the script will exit._
 
 ## Planned changes:
-> - Add support for `--walk` argument flag, used to run full `snmpwalk` at the end of diagnostics file collection
->   - Pull needed `snmpwalk` arguments from configuration file
->  - Prompt user for which device to walk, using config file for list of options
+N/A
 
 ## Support
 
-New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub. You can find this project's topic/threads here:
-
->Add the url for the support thread here
+Requests for support can be filed as an [Issue](https://github.com/newrelic-experimental/newrelic-npm-diagnostics/issues).
 
 ## Contributing
 We encourage your contributions to improve `npmDiag`! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
