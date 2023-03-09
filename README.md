@@ -18,7 +18,7 @@ No additional installation steps are necessary; Just follow the instructions in 
      - `--collect`: Collects diagnostic info from containers. Outputs a zip file called `npmDiag-output.zip`
      - `--walk`: Run `snmpwalk` against a device from the config. Outputs `<deviceName>-snmpwalk.out`
  
-_Note: `--collect` mode must be run with `sudo` in order to restart Docker containers. Running this mode without `sudo` will throw and error, and the script will exit._
+_Note: `--collect` mode must be run with `sudo` in order to restart Docker containers. Running this mode without `sudo` will throw an error, and the script will exit._
 
 ## Planned changes:
 N/A
