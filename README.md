@@ -23,7 +23,7 @@ yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.r
 yum install epel-release
 ```
 
-Documentation on the process of adding the EPEL repository can be found [(here)](https://docs.fedoraproject.org/en-US/epel/).
+Documentation on the process of adding the EPEL repository can be found ([here](https://docs.fedoraproject.org/en-US/epel/)).
 
 No additional installation steps are necessary; Just follow the instructions in [Usage](#usage) to run the script.
 
@@ -43,7 +43,7 @@ By default the Ktranslate container runs with info-level logs being generated. K
 3) Once the container is stopped, you'll need to launch a new container with debug-level logs enabled. This can be done by modifying your container's run command to include `-log_level=debug` in the Ktranslate arguments. For example, you would change your run command from
 
 ```
-docker run -d --name ktranslate-info-level-container --restart unless-stopped --pull=always -p 163:1620/udp \
+docker run -d --name ktranslate-info-level-container --restart unless-stopped --pull=always -p 162:1620/udp \
 -v `pwd`/snmp-base.yaml:/snmp-base.yaml \
 -e NEW_RELIC_API_KEY=$LICENSE_KEY \
 kentik/ktranslate:v2 \
@@ -58,7 +58,7 @@ kentik/ktranslate:v2 \
 ```
 to
 ```
-docker run -d --name ktranslate-info-level-container --restart unless-stopped --pull=always -p 163:1620/udp \
+docker run -d --name ktranslate-debug-level-container --restart unless-stopped --pull=always -p 162:1620/udp \
 -v `pwd`/snmp-base.yaml:/snmp-base.yaml \
 -e NEW_RELIC_API_KEY=$LICENSE_KEY \
 kentik/ktranslate:v2 \
