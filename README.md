@@ -36,6 +36,46 @@ No additional installation steps are necessary; Just follow the instructions in 
  
 _Note: `--collect` mode must be run with `sudo` in order to restart Docker containers. Running this mode without `sudo` will throw an error, and the script will exit._
 
+## Note on collecting debug-level logs:
+By default the Ktranslate container runs with info-level logs being generated. Ktranslate isn't able to update the verbosity of the logs on the fly, so if you want to collect debug-level logs you will need to launch a new container. This can be achieved by doing the following:
+1) Find your existing Ktranslate container's short ID with the command `docker ps -a`
+2) Stop the container with the command `docker stop <shortID>`
+3) Once the container is stopped, you'll need to launch a new container with debug-level logs enabled. This can be done by modifying your container's run command to include `-log_level=debug` in the Ktranslate arguments. For example, you would change your run command from
+
+```
+docker run -d --name ktranslate-info-level-container --restart unless-stopped --pull=always -p 163:1620/udp \
+-v `pwd`/snmp-base.yaml:/snmp-base.yaml \
+-e NEW_RELIC_API_KEY=$LICENSE_KEY \
+kentik/ktranslate:v2 \
+  -snmp /snmp-base.yaml \
+  -nr_account_id=$ACCOUNT_ID \
+  -metrics=jchf \
+  -tee_logs=true \
+  -service_name=debug-level-test \
+  -snmp_discovery_on_start=true \
+  -snmp_discovery_min=180 \
+  nr1.snmp
+```
+to
+```
+docker run -d --name ktranslate-info-level-container --restart unless-stopped --pull=always -p 163:1620/udp \
+-v `pwd`/snmp-base.yaml:/snmp-base.yaml \
+-e NEW_RELIC_API_KEY=$LICENSE_KEY \
+kentik/ktranslate:v2 \
+  -snmp /snmp-base.yaml \
+  -nr_account_id=$ACCOUNT_ID \
+  -metrics=jchf \
+  -tee_logs=true \
+  -service_name=debug-level-test \
+  -snmp_discovery_on_start=true \
+  -snmp_discovery_min=180 \
+  -log_level=debug \
+  nr1.snmp
+```
+
+4) Once the new container is up and running with debug mode enabled, you can target it with the script to collect more-informative logs. This new container can be stopped and deleted once the script is finished running, and the old container can be started up again.
+
+
 ## Planned changes:
 N/A
 
