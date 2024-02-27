@@ -7,7 +7,7 @@
 ## Installation
  Script requires different packages depending on the use case. Required packages are:
   - `--collect`: [jq](https://packages.ubuntu.com/focal/jq), [zip](https://packages.ubuntu.com/focal/zip)
-  - `--walk`: [yq](https://snapcraft.io/yq), [snmp](https://packages.ubuntu.com/focal/snmp), [jq](https://packages.ubuntu.com/focal/jq)
+  - `--walk`: [yq](https://snapcraft.io/yq), [jq](https://packages.ubuntu.com/focal/jq), [snmp](https://packages.ubuntu.com/focal/snmp)
   
 _Note: If you're currently running the Docker container on a RHEL or CentOS host, the `jq` package is not available in the base image repositories. You will need to add the Extra Packages for Enterprise Linux repository to your environment with the command below:_
 
@@ -69,7 +69,7 @@ kentik/ktranslate:v2 \
   -service_name=debug-level-test \
   -snmp_discovery_on_start=true \
   -snmp_discovery_min=180 \
-  -log_level=debug \
+  -log_level=debug \ # <- Debug-level logs are enabled here
   nr1.snmp
 ```
 
