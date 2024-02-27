@@ -1,49 +1,32 @@
 #!/usr/bin/env bash
 
 collectPreReqCheck() {
-
 	# Checks for root user
 	if [ "$EUID" -ne 0 ]; then
 	    echo "Please run this script as root, or with sudo to use this function."
 	    exit 0
 	fi
 
-	# Check to make sure `jq` is installed
-	if ! [[ $(command -v jq) ]]; then
-	    echo "Please install the \`jq\` package to continue."
-	    exit 0
-	fi
-
-	# Check to make sure `zip` is installed
-	if ! [[ $(command -v zip) ]]; then
-	    echo "Please install the \`zip\` package to continue."
-	    exit 0
+	# Checks host for package dependencies
+	if [[ ! $(command -v jq) || ! $(command -v zip) ]]; then
+		echo "A package dependency is missing from the host."
+		echo "Please ensure the 'jq' and 'zip' packages are installed."
+		echo "This can be done with 'sudo apt install jq zip -y'"
+		exit 0
 	fi
 }
 
 walkPreReqCheck() {
-	# Check to make sure `yq` is installed
-	if ! [[ $(command -v yq) ]]; then
-	    echo "Please install the \`yq\` package to continue."
-	    exit 0
-	fi
-
-	# Check to make sure `snmpwalk` is installed
-	if ! [[ $(command -v snmpwalk) ]]; then
-	    echo "Please install \`snmpwalk\` to continue."
-	    echo "This can be done with \`apt-get install snmp\` or \`yum install net-snmp-utils\`."
-	    exit 0
-	fi
-
-	# Check to make sure `jq` is installed
-	if ! [[ $(command -v jq) ]]; then
-	    echo "Please install the \`jq\` package to continue."
-	    exit 0
+	# Checks host for package dependencies
+	if [[ ! $(command -v jq) || ! $(command -v snmpwalk) || ! $(command -v yq) ]]; then
+		echo "A package dependency is missing from the host."
+		echo "Please ensure the 'jq', 'snmp', and 'yq' packages are installed."
+		echo "This can be done with 'sudo apt install jq snmp -y && sudo snap install yq'"
+		exit 0
 	fi
 }
 
 collectRoutine() {
-
 	# Finds container IDs using Ktranslate image. Adds them to `foundContainerIDs` array.
 	readarray -t allContainerIDs < <(docker ps -aq)
 	for i in "${allContainerIDs[@]}"; do
@@ -101,18 +84,18 @@ collectRoutine() {
 	mkdir /tmp/"$tmpFolderName"
 	for i in "${targetContainerIDs[@]}"; do
 
-		# Gets config file for each container. Copies to a `/tmp` working folder. Renames with Docker container long ID.
-		if [[ -f $(docker inspect "$i" | jq -r '.[] | .Mounts | .[] | .Source | select(contains("yaml"))') ]]; then
-			cp $(docker inspect "$i" | jq -r '.[] | .Mounts | .[] | .Source | select(contains("yaml"))') /tmp/"$tmpFolderName"/$(docker inspect "$i" | jq -r '.[] | .Id').yaml
-		fi
-
+		# Gets config files for each container. Copies to a `/tmp` working folder. Renames with Docker container long ID.
+		for configFiles in $(docker inspect "$i" | jq -r '.[] | .Mounts | .[] | .Source | select(contains("yaml"))'); do
+			cp "$configFiles" /tmp/"$tmpFolderName"/$(docker inspect "$i" | jq -r '.[] | .Id')-$(echo "$configFiles" | rev | cut -d "/" -f1 | rev)
+		done
+		
 		# Stops container, deletes old log file, starts container to regenerate logs. Copies to a `/tmp` working folder. Skips if logs are missing to begin with.		
 		if [[ -f $(docker inspect "$i" | jq -r '.[] | .LogPath') ]]; then
 			echo ""
 			echo "Stopping $(docker inspect "$i" | jq -r '.[] | .Name' | sed 's/^\///')"
 			docker stop "$i" > /dev/null
-			rm $(docker inspect "$i" | jq -r '.[] | .LogPath')
-			echo "Regenerating log file..."
+			echo -e "\n------------\n                        ____  _             \n  _ __  _ __  _ __ ___ |  _ \\(_) __ _  __ _ \n | '_ \| '_ \| '_ \` _ \| | | | |/ _\` |/ _\` |\n | | | | |_) | | | | | | |_| | | (_| | (_| |\n |_| |_| .__/|_| |_| |_|____/|_|\\__,_|\\__, |\n       |_|                            |___/  \n\n" >> $(docker inspect "$i" | jq -r '.[] | .LogPath')
+			echo "Refreshing log file..."
 			docker start "$i" > /dev/null
 
 			# Sleeps script for 3 minutes to allow container logs to regenerate
@@ -142,7 +125,7 @@ diagZip() {
     zip -qj npmDiag-output.zip /tmp/"$tmpFolderName"/*
     chmod 666 npmDiag-output.zip
     echo ""
-    echo "Created output file \`npmDiag-output.zip\` in working directory."
+    echo "Created output file 'npmDiag-output.zip' in working directory."
 }
 
 postCleanup() {
@@ -151,7 +134,6 @@ postCleanup() {
 }
 
 walkRoutine() {
-
 	# Finds container IDs using Ktranslate image. Adds them to `foundContainerIDs` array.
 	readarray -t allContainerIDs < <(docker ps -aq)
 	for i in "${allContainerIDs[@]}"; do
@@ -247,7 +229,7 @@ walkRoutine() {
 		targetDeviceIP=$(yq eval '.devices | .[] | select(.device_name == "'"$targetDeviceName"'") | .device_ip' "$configLocation")
 		snmpwalk -v 2c -On -c $(yq eval '.devices | .[] | select(.device_name == "'"$targetDeviceName"'") | .snmp_comm' "$configLocation") "$targetDeviceIP" . >> "$targetDeviceName"-snmpwalk.out
 		echo ""
-		echo "Created output file \`"$targetDeviceName"-snmpwalk.out\` in working directory."
+		echo "Created output file '"$targetDeviceName"-snmpwalk.out' in working directory."
 	else
 		# Runs snmpwalk routine for v3 devices
 		targetDeviceIP=$(yq eval '.devices | .[] | select(.device_name == "'"$targetDeviceName"'") | .device_ip' "$configLocation")
@@ -297,7 +279,7 @@ elif [ "$1" = "--walk" ]; then
     walkRoutine
 else
     echo "Usage: npmDiag [--collect|--walk|--help]"
-    echo "       --collect: Collects diagnostic info from containers. Outputs a zip file called \`npmDiag-output.zip\`"
-    echo "       --walk: Run \`snmpwalk\` against a device from the config. Outputs \`<deviceName>-snmpwalk.out\`"
+    echo "       --collect: Collects diagnostic info from containers. Outputs a zip file called 'npmDiag-output.zip'"
+    echo "       --walk: Run 'snmpwalk' against a device from the config. Outputs '<deviceName>-snmpwalk.out'"
     echo "       --help: Shows this help message."
 fi
