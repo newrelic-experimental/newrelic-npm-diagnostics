@@ -30,7 +30,7 @@ collectRoutine() {
 	# Finds container IDs using Ktranslate image. Adds them to `foundContainerIDs` array.
 	readarray -t allContainerIDs < <(docker ps -aq)
 	for i in "${allContainerIDs[@]}"; do
-		if [[ $(docker inspect "$i" | jq -r '.[] | .Config | .Image') == 'kentik/ktranslate:v2' ]]; then
+		if [[ $(docker inspect "$i" | jq -r '.[] | .Config | .Image') == 'kentik/ktranslate'* ]]; then
 			foundContainerIDs+=("$i")
 		fi
 	done
@@ -137,7 +137,7 @@ walkRoutine() {
 	# Finds container IDs using Ktranslate image. Adds them to `foundContainerIDs` array.
 	readarray -t allContainerIDs < <(docker ps -aq)
 	for i in "${allContainerIDs[@]}"; do
-		if [[ $(docker inspect "$i" | jq -r '.[] | .Config | .Image') == 'kentik/ktranslate:v2' ]]; then
+		if [[ $(docker inspect "$i" | jq -r '.[] | .Config | .Image') == 'kentik/ktranslate'* ]]; then
 			foundContainerIDs+=("$i")
 		fi
 	done
