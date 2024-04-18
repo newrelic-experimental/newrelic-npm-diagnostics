@@ -5,27 +5,51 @@
  A script for retrieving configuration files and logs from Network Performance Monitoring containers, or for running `snmpwalk` against a configured device. Outputs a file called `npmDiag-output.zip` with `--collect` mode, or `<deviceName>-snmpwalk.out` with `--walk` mode.
 
 ## Installation
- Script requires different packages depending on the use case. Required packages are:
+  The script requires different packages depending on the use case. Required packages and install commands are below:
   - `--collect`: [jq](https://packages.ubuntu.com/focal/jq), [zip](https://packages.ubuntu.com/focal/zip)
-  - `--walk`: [yq](https://snapcraft.io/yq), [jq](https://packages.ubuntu.com/focal/jq), [snmp](https://packages.ubuntu.com/focal/snmp)
-  
-_Note: If you're currently running the Docker container on a RHEL or CentOS host, the `jq` package is not available in the base image repositories. You will need to add the Extra Packages for Enterprise Linux repository to your environment with the command below:_
 
-**RHEL7**
+    ```
+    Ubuntu:
+      sudo apt install jq zip -y
+
+    RHEL/CentOS:
+      sudo yum install jq zip -y
+    ```
+  - `--walk`: [yq](https://snapcraft.io/yq), [jq](https://packages.ubuntu.com/focal/jq), [snmp](https://packages.ubuntu.com/focal/snmp), [snap](https://snapcraft.io)
+
+    ```
+    Ubuntu:
+      sudo apt install jq snmp -y && sudo snap install yq
+    
+    RHEL/CentOS:
+      sudo yum install jq net-snmp-utils -y && sudo snap install yq
+    ```
+
+_Note: The `snap` package is required when installing `yq` on Ubuntu & RHEL/CentOS. If you're currently running the Docker container on RHEL or CentOS, the `jq` and `snap` packages are not available in the base image repositories. You will need to add the Extra Packages for Enterprise Linux repository to your environment with the commands below:_
+
+**CentOS 7**
+```
+yum install epel-release
+```
+**RHEL 7**
 ```
 subscription-manager repos --enable rhel-*-optional-rpms \
                            --enable rhel-*-extras-rpms \
                            --enable rhel-ha-for-rhel-*-server-rpms
 yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 ```
-**CentOS**
+**RHEL 8**
 ```
-yum install epel-release
+subscription-manager repos --enable codeready-builder-for-rhel-8-$(arch)-rpms
+dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+```
+**RHEL 9**
+```
+subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
+dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 ```
 
-Documentation on the process of adding the EPEL repository can be found ([here](https://docs.fedoraproject.org/en-US/epel/)).
-
-No additional installation steps are necessary; Just follow the instructions in [Usage](#usage) to run the script.
+Further documentation on the process of adding the EPEL repository can be found ([here](https://docs.fedoraproject.org/en-US/epel/)).
 
 ## Usage
  1. Download the script with `wget https://raw.githubusercontent.com/newrelic-experimental/newrelic-npm-diagnostics/main/npmDiag.sh`

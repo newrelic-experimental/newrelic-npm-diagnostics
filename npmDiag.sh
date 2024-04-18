@@ -11,7 +11,12 @@ collectPreReqCheck() {
 	if [[ ! $(command -v jq) || ! $(command -v zip) ]]; then
 		echo "A package dependency is missing from the host."
 		echo "Please ensure the 'jq' and 'zip' packages are installed."
-		echo "This can be done with 'sudo apt install jq zip -y'"
+		echo ""
+		echo "This can be done with 'sudo apt install jq zip -y' on Ubuntu"
+		echo "or with 'sudo yum install jq zip -y' on RHEL/CentOS"
+		echo ""
+		echo "If the 'jq' package can't be found on RHEL/CentOS, see:"
+		echo "https://github.com/newrelic-experimental/newrelic-npm-diagnostics?tab=readme-ov-file#installation"
 		exit 0
 	fi
 }
@@ -21,7 +26,12 @@ walkPreReqCheck() {
 	if [[ ! $(command -v jq) || ! $(command -v snmpwalk) || ! $(command -v yq) ]]; then
 		echo "A package dependency is missing from the host."
 		echo "Please ensure the 'jq', 'snmp', and 'yq' packages are installed."
-		echo "This can be done with 'sudo apt install jq snmp -y && sudo snap install yq'"
+		echo ""
+		echo "This can be done with 'sudo apt install jq snmp -y && sudo snap install yq' on Ubuntu"
+		echo "or with 'sudo yum install jq net-snmp-utils -y && sudo snap install yq' on RHEL/CentOS."
+		echo ""
+		echo "If the 'jq' package can't be found on RHEL/CentOS, or if you're missing 'snap', see:"
+		echo "https://github.com/newrelic-experimental/newrelic-npm-diagnostics?tab=readme-ov-file#installation"
 		exit 0
 	fi
 }
