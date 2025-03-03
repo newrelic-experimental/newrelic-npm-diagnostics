@@ -10,6 +10,8 @@
  
  - `--walk`: Uses the `snmp-base.yaml` configuration file to list available devices. The selected device has `snmpwalk` run against it in order to return _all_ of it's supported OIDs. Outputs a file called `<targetDevice>_snmpwalk_results-<date>.txt`. This process _can_ take a long time depending on how many OIDs the device supports.
 
+ - `--dump`: Run `tcpdump` against one/all ports within your network. Outputs a PCAP file containing the caught traffic called `tcpdump-output-<date>.pcap`. Useful for verifying that packets are flowing from Netflow/Syslog devices post-setup if data is missing.
+
 ## Installation
   The script requires different packages depending on the use-case. Required packages and install commands are below:
   - `--collect`: [jq](https://packages.ubuntu.com/focal/jq), [zip](https://packages.ubuntu.com/focal/zip)
@@ -22,7 +24,7 @@
     ```
     sudo yum install jq zip -y
     ```
-  - `--time`: [yq](https://snapcraft.io/yq), [jq](https://packages.ubuntu.com/focal/jq), [snmp](https://packages.ubuntu.com/focal/snmp)
+  - `--time`/`--walk`: [yq](https://snapcraft.io/yq), [jq](https://packages.ubuntu.com/focal/jq), [snmp](https://packages.ubuntu.com/focal/snmp)
 
     **Ubuntu:**
     ```
@@ -44,6 +46,16 @@
 
     sudo yum install jq net-snmp-utils -y; sudo snap install yq
     ```
+  - `--dump`: [tcpdump](https://packages.ubuntu.com/focal/tcpdump)
+
+    **Ubuntu:**
+    ```
+    sudo apt install tcpdump -y
+    ```
+    **RHEL/CentOS:**
+    ```
+    sudo yum install tcpdump -y
+    ```
 
 _**Note:** The `snap` package is required when installing `yq` on Ubuntu & RHEL/CentOS if pulling from GitHub is not an option. If you're currently running the Docker container on RHEL or CentOS, the `jq` and `snap` packages are not available in the base image repositories. Documentation on the process of adding the Extra Packages for Enterprise Linux repository can be found ([here](https://docs.fedoraproject.org/en-US/epel/))_
 
@@ -57,6 +69,8 @@ _**Note:** The `snap` package is required when installing `yq` on Ubuntu & RHEL/
      - `--time`: Run `snmpwalk` against a device from the config using it's assigned profile. Outputs time to complete, as well as `<targetDevice>_timing_results-<date>.txt`
      
      - `--walk`: Run `snmpwalk` against a device from the config using it's assigned profile. Outputs the complete list of OIDs supported by the device, as well as `<targetDevice>_snmpwalk_results-<date>.txt`
+
+     - `--dump`: Run `tcpdump` against one/all ports within your network. Outputs a PCAP file containing the caught traffic called `tcpdump-output-<date>.pcap`
  
 _**Note:** `--collect` mode must be run with `sudo` if Ktranslate is installed in a Docker container or as a Linux service. Running this mode without `sudo` for either installation will throw an error, and the script will exit._
 

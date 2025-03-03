@@ -32,10 +32,11 @@ showHelpMenu() {
   echo ""
   echo "  --collect: Collects diagnostic info from containers. Outputs a zip file called 'npmDiag-output.zip'"
   echo "  --time: Run 'snmpwalk' against a device from the config. Outputs how long it takes to complete. Useful for calculating timeout settings."
+  echo "  --dump: Run 'tcpdump' against one/all ports within your network. Outputs a PCAP file containing the caught traffic."
   echo "  --help: Shows this help message."
   echo ""
   echo "In the event npmDiag can't determine what installation method you've used, you can override the auto-discovery by using '--installMethod'"
-  echo "followed by the deployment method (DOCKER, PODMAN, or BAREMETAL)."
+  echo "followed by the deployment method (DOCKER, PODMAN, or BAREMETAL). This does not apply to '--dump' mode."
 }
 
 # Other menu functions have a few differences between them but this menu is used four times, so it's been turned into a function to reduce repeated code
@@ -1328,6 +1329,63 @@ baremetalWalkRouting() {
   fi
 }
 
+###--- DUMP FUNCTIONS ---###
+
+tcpdumpPreReqCheck() {
+  # Checks host for package dependencies
+  if [[ ! $(command -v tcpdump) ]]; then
+    echo "A package dependency is missing from the host."
+    echo "Please ensure that 'tcpdump' is installed."
+    echo ""
+    echo "It can be installed with 'sudo apt install tcpdump -y' on Ubuntu"
+    echo "or with 'sudo yum install tcpdump -y' on RHEL/CentOS"
+    exit 0
+  fi
+}
+
+tcpdumpRoutine() {
+  outputFileName="tcpdump-output-$(date +%Y-%m-%d-%H-%M-%S).pcap"
+  menuLoopExit=false
+  while [[ "$menuLoopExit" == false ]]; do
+    echo ""
+    echo "Enter the port number you expect packets to arrive on, or a '*' to listen for all packets across any port."
+    read -ep "You can also use 'q' to exit the script > " dumpPortNumber
+
+    if [[ "$dumpPortNumber" =~ ^[0-9]+$ ]]; then
+      echo ""
+      echo "Running tcpdump against port $dumpPortNumber"
+      echo "Press 'ctrl+c' to exit the recording process when ready"
+      echo ""
+      tcpdump -i any -U -n -s0 port "$dumpPortNumber" and udp -w - | tee -a "$outputFileName" | tcpdump -n -r -
+      runByUsername=$(logname)
+      chown "$runByUsername:$runByUsername" "$outputFileName"
+      chmod 666 "$outputFileName"
+      echo ""
+      echo "Created output file '"$outputFileName"' in working directory."
+      exit 0
+    elif [[ "$dumpPortNumber" = "*" ]]; then
+      echo ""
+      echo "Running tcpdump against port $dumpPortNumber"
+      echo "Press 'ctrl+c' to exit the recording process when ready"
+      echo ""
+      tcpdump -i any -U -n -s0 udp -w - | tee -a "$outputFileName" | tcpdump -n -r -
+      runByUsername=$(logname)
+      chown "$runByUsername:$runByUsername" "$outputFileName"
+      chmod 666 "$outputFileName"
+      echo ""
+      echo "Created output file '"$outputFileName"' in working directory."
+      exit 0
+    elif [[ "${dumpPortNumber,,}" = "q" ]]; then
+      echo ""
+      echo "Exiting..."
+      exit 0
+    else
+      echo ""
+      echo "Selection must be an integer, a '*' wilcard, or a 'q' to exit"
+    fi
+  done
+}
+
 ###--- SCRIPT FLOW ---###
 
 # Checks number of arguments
@@ -1337,7 +1395,7 @@ if [ $# -lt 1 ]; then
 fi
 
 # Validates argument passed to script
-if [ "$1" != "--collect" ] && [ "$1" != "--time" ] && [ "$1" != "--walk" ] && [ "$1" != "--help" ]; then
+if [ "$1" != "--collect" ] && [ "$1" != "--time" ] && [ "$1" != "--walk" ] && [ "$1" != "--dump" ] && [ "$1" != "--help" ] ]; then
     echo "Invalid argument: $1"
     showHelpMenu
     exit 1
@@ -1479,6 +1537,11 @@ elif [[ $1 = "--walk" ]]; then
     echo "Unexpected \$installMethod value caused script to exit"
     exit 1
   fi
+elif [[ $1 = "--dump" ]]; then
+  rootCheck
+  tcpdumpPreReqCheck
+  tcpdumpRoutine
+  exit 0
 else
   showHelpMenu
 fi
