@@ -2,63 +2,65 @@
 
 # npmDiag.sh
 
- A script for retrieving configuration files and logs from Network Performance Monitoring containers, or for running `snmpwalk` against a configured device. Outputs a file called `npmDiag-output.zip` with `--collect` mode, or `<deviceName>-snmpwalk.out` with `--walk` mode.
+ A multi-use script for assisting in troubleshooting Network Performance Monitoring installations. `npmDiag.sh` has three modes for different use-cases:
+
+ - `--collect`: Creates an output file containing your configuration file and logs from Ktranslate. If Ktranslate is installed as a Linux service, the `/etc/ktranslate/profiles` directory is gathered. If Ktranslate is running in a container, only files mounted to the container directly are included. Outputs a file called `npmDiag-output-<date>.zip`.
+ 
+ - `--time`: Uses the `snmp-base.yaml` configuration file to list available devices. The selected device has `snmpwalk` run against it with all OIDs included in it's assigned (and extension) profiles. Outputs the time required to poll the device, as well as a file called `<targetDevice>_timing_results-<date>.txt` in the current directory. Useful if the best timeout setting for a device is unknown.
+ 
+ - `--walk`: Uses the `snmp-base.yaml` configuration file to list available devices. The selected device has `snmpwalk` run against it in order to return _all_ of it's supported OIDs. Outputs a file called `<targetDevice>_snmpwalk_results-<date>.txt`. This process _can_ take a long time depending on how many OIDs the device supports.
 
 ## Installation
-  The script requires different packages depending on the use case. Required packages and install commands are below:
+  The script requires different packages depending on the use-case. Required packages and install commands are below:
   - `--collect`: [jq](https://packages.ubuntu.com/focal/jq), [zip](https://packages.ubuntu.com/focal/zip)
 
+    **Ubuntu:**
     ```
-    Ubuntu:
-      sudo apt install jq zip -y
+    sudo apt install jq zip -y
+    ```
+    **RHEL/CentOS:**
+    ```
+    sudo yum install jq zip -y
+    ```
+  - `--time`: [yq](https://snapcraft.io/yq), [jq](https://packages.ubuntu.com/focal/jq), [snmp](https://packages.ubuntu.com/focal/snmp)
 
-    RHEL/CentOS:
-      sudo yum install jq zip -y
+    **Ubuntu:**
     ```
-  - `--walk`: [yq](https://snapcraft.io/yq), [jq](https://packages.ubuntu.com/focal/jq), [snmp](https://packages.ubuntu.com/focal/snmp), [snap](https://snapcraft.io)
-
-    ```
-    Ubuntu:
-      sudo apt install jq snmp -y && sudo snap install yq
+    sudo apt install jq snmp -y; \
+      sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq; \
+      sudo chmod +x /usr/bin/yq
     
-    RHEL/CentOS:
-      sudo yum install jq net-snmp-utils -y && sudo snap install yq
+    # OR #
+    
+    sudo apt install jq snmp -y; sudo snap install yq
+    ```
+    **RHEL/CentOS:**
+    ```
+    sudo yum install jq net-snmp-utils -y; \
+      sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq; \
+      sudo chmod +x /usr/bin/yq
+
+    # OR #
+
+    sudo yum install jq net-snmp-utils -y; sudo snap install yq
     ```
 
-_Note: The `snap` package is required when installing `yq` on Ubuntu & RHEL/CentOS. If you're currently running the Docker container on RHEL or CentOS, the `jq` and `snap` packages are not available in the base image repositories. You will need to add the Extra Packages for Enterprise Linux repository to your environment with the commands below:_
+_**Note:** The `snap` package is required when installing `yq` on Ubuntu & RHEL/CentOS if pulling from GitHub is not an option. If you're currently running the Docker container on RHEL or CentOS, the `jq` and `snap` packages are not available in the base image repositories. Documentation on the process of adding the Extra Packages for Enterprise Linux repository can be found ([here](https://docs.fedoraproject.org/en-US/epel/))_
 
-**CentOS 7**
-```
-yum install epel-release
-```
-**RHEL 7**
-```
-subscription-manager repos --enable rhel-*-optional-rpms \
-                           --enable rhel-*-extras-rpms \
-                           --enable rhel-ha-for-rhel-*-server-rpms
-yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-```
-**RHEL 8**
-```
-subscription-manager repos --enable codeready-builder-for-rhel-8-$(arch)-rpms
-dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-```
-**RHEL 9**
-```
-subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
-dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-```
-
-Further documentation on the process of adding the EPEL repository can be found ([here](https://docs.fedoraproject.org/en-US/epel/)).
 
 ## Usage
  1. Download the script with `wget https://raw.githubusercontent.com/newrelic-experimental/newrelic-npm-diagnostics/main/npmDiag.sh`
  2. Use `chmod +x ./npmDiag.sh` to make it executable
- 3. Run the script with either `sudo ./npmDiag.sh --collect` or `./npmDiag.sh --walk` depending on what you want to do
-     - `--collect`: Collects diagnostic info from containers. Outputs a zip file called `npmDiag-output.zip`
-     - `--walk`: Run `snmpwalk` against a device from the config. Outputs `<deviceName>-snmpwalk.out`
+ 3. Run the script with `./npmDiag.sh --collect`, `./npmDiag.sh --time`, or `./npmDiag.sh --walk` depending on what you want to do
+     - `--collect`: Collects diagnostic info from Ktranslate's container or service. Outputs `npmDiag-output-<date>.zip`
+
+     - `--time`: Run `snmpwalk` against a device from the config using it's assigned profile. Outputs time to complete, as well as `<targetDevice>_timing_results-<date>.txt`
+     
+     - `--walk`: Run `snmpwalk` against a device from the config using it's assigned profile. Outputs the complete list of OIDs supported by the device, as well as `<targetDevice>_snmpwalk_results-<date>.txt`
  
-_Note: `--collect` mode must be run with `sudo` in order to restart Docker containers. Running this mode without `sudo` will throw an error, and the script will exit._
+_**Note:** `--collect` mode must be run with `sudo` if Ktranslate is installed in a Docker container or as a Linux service. Running this mode without `sudo` for either installation will throw an error, and the script will exit._
+
+_**Note:** `npmDiag.sh will do it's best to automatically determine what installation method you've used. If it's failing to do so, you can include `--installMethod [DOCKER|PODMAN|BAREMETAL]` in the run command to force a method._
 
 ## Note on collecting debug-level logs:
 By default the Ktranslate container runs with info-level logs being generated. Ktranslate isn't able to update the verbosity of the logs on the fly, so if you want to collect debug-level logs you will need to launch a new container. This can be achieved by doing the following:
