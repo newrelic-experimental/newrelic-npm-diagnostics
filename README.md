@@ -60,7 +60,7 @@ _**Note:** The `snap` package is required when installing `yq` on Ubuntu & RHEL/
  
 _**Note:** `--collect` mode must be run with `sudo` if Ktranslate is installed in a Docker container or as a Linux service. Running this mode without `sudo` for either installation will throw an error, and the script will exit._
 
-_**Note:** `npmDiag.sh will do it's best to automatically determine what installation method you've used. If it's failing to do so, you can include `--installMethod [DOCKER|PODMAN|BAREMETAL]` in the run command to force a method._
+_**Note:** `npmDiag.sh` will do it's best to automatically determine what installation method you've used. If it's failing to do so, you can include `--installMethod [DOCKER|PODMAN|BAREMETAL]` in the run command to force a method._
 
 ## Note on collecting debug-level logs:
 By default the Ktranslate container runs with info-level logs being generated. Ktranslate isn't able to update the verbosity of the logs on the fly, so if you want to collect debug-level logs you will need to launch a new container. This can be achieved by doing the following:
