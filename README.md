@@ -22,7 +22,8 @@
     ```
     sudo yum install jq zip -y
     ```
-  - `--time`: [yq](https://snapcraft.io/yq), [jq](https://packages.ubuntu.com/focal/jq), [snmp](https://packages.ubuntu.com/focal/snmp)
+  - `--time`/`--walk`
+  : [yq](https://snapcraft.io/yq), [jq](https://packages.ubuntu.com/focal/jq), [snmp](https://packages.ubuntu.com/focal/snmp)
 
     **Ubuntu:**
     ```
@@ -45,7 +46,13 @@
     sudo yum install jq net-snmp-utils -y; sudo snap install yq
     ```
 
-_**Note:** The `snap` package is required when installing `yq` on Ubuntu & RHEL/CentOS if pulling from GitHub is not an option. If you're currently running the Docker container on RHEL or CentOS, the `jq` and `snap` packages are not available in the base image repositories. Documentation on the process of adding the Extra Packages for Enterprise Linux repository can be found ([here](https://docs.fedoraproject.org/en-US/epel/))_
+_**Installation Notes:**_
+- _If pulling the `yq` dependency from GitHub is not an option, it can be installed using the `snap` package manager on Ubuntu & RHEL/CentOS. It's important to note that the [Go-based `yq` package](https://github.com/mikefarah/yq) is required. Installing the `Python`-based `yq` package will cause the script to fail unexpectedly. When checking the version of `yq` you should see something like this:_
+  ```
+  user@hostname:~$ yq --version
+  yq (https://github.com/mikefarah/yq/) version v#.#.#
+  ```
+- _If you're currently running the Docker container on RHEL or CentOS, the `jq` and `snap` packages may not be available in the base image's repository list. Documentation on the process of adding the Extra Packages for Enterprise Linux (EPEL) repository can be found ([here](https://docs.fedoraproject.org/en-US/epel/))_
 
 
 ## Usage
